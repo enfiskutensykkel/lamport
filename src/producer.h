@@ -8,7 +8,7 @@
 class Producer
 {
 	public:
-		Producer();
+		Producer(pthread_barrier_t& barrier, unsigned id, Queue<int>& queue);
 
 		~Producer();
 

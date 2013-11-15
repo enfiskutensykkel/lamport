@@ -1,13 +1,13 @@
-#include "thread.h"
+#include "producer.h"
 #include <pthread.h>
 #include <stdexcept>
 
 
 
-Thread::Thread(pthread_barrier_t& b, unsigned id, Queue<int> q)
+Producer::Producer(pthread_barrier_t& b, unsigned id, Queue<int>& q)
 	: barrier(b), queue(q), id(id), running(false)
 {
-	if (pthread_create(&thread, nullptr, (void* (*)(void*)) &Thread::dispatch, static_cast<void*>(this)) != 0)
+	if (pthread_create(&thread, nullptr, (void* (*)(void*)) &Producer::dispatch, static_cast<void*>(this)) != 0)
 	{
 		throw std::runtime_error("failed to create thread");
 	}		
@@ -15,7 +15,7 @@ Thread::Thread(pthread_barrier_t& b, unsigned id, Queue<int> q)
 
 
 
-Thread::~Thread()
+Producer::~Producer()
 {
 	running = false;
 	if (pthread_join(thread, nullptr) != 0)
@@ -46,7 +46,7 @@ void Producer::run()
 
 
 
-void Thread::dispatch(Thread* thread)
+void Producer::dispatch(Producer* thread)
 {
 	if (thread->running)
 	{
