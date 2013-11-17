@@ -1,6 +1,6 @@
 #include "producer.h"
-#include "manytooneproducer.h"
-#include "onetooneproducer.h"
+#include "idrepeater.h"
+#include "countproducer.h"
 #include "lockingqueue.h"
 #include "lamportqueue.h"
 #include <vector>
@@ -27,11 +27,11 @@ struct producer
 
 
 
-uint64_t validate(Queue<int>& queue, std::vector<producer<ManyToOneProducer> >& producers, unsigned repetitions)
+uint64_t validate(Queue& queue, std::vector<producer<IdRepeater> >& producers, unsigned repetitions)
 {
 	timespec start, stop;
-	uint64_t i = repetitions * producers.size() + 1;
-	uint64_t* count = new uint64_t[producers.size()];
+	unsigned i = repetitions * producers.size() + 1;
+	unsigned* count = new unsigned[producers.size()];
 	for (unsigned k = 0; k < producers.size(); ++k)
 	{
 		count[k] = 0;
@@ -50,24 +50,24 @@ uint64_t validate(Queue<int>& queue, std::vector<producer<ManyToOneProducer> >& 
 	}
 	clock_gettime(CLOCK_REALTIME, &stop);
 
-	for (std::vector<producer<ManyToOneProducer> >::iterator i = producers.begin(); i != producers.end(); i++)
+	for (std::vector<producer<IdRepeater> >::iterator i = producers.begin(); i != producers.end(); i++)
 	{
-		if (count[i->implementation->getId()] != repetitions)
+		if (count[i->implementation->id] != repetitions)
 		{
 			i->failed = true;
 		}
 	}
 
 	delete[] count;
-	return Producer::diff(stop, start);
+	return Producer::tsdiff(stop, start);
 }
 
 
 
-uint64_t validate(Queue<int>& queue, std::vector<producer<OneToOneProducer> >& producers, unsigned repetitions)
+uint64_t validate(Queue& queue, std::vector<producer<CountProducer> >& producers, unsigned repetitions)
 {
 	timespec start, stop;
-	uint64_t i = repetitions * producers.size() + 1;
+	unsigned i = repetitions * producers.size() + 1;
 
 	bool got_unexpected = false;
 	clock_gettime(CLOCK_REALTIME, &start);
@@ -79,14 +79,14 @@ uint64_t validate(Queue<int>& queue, std::vector<producer<OneToOneProducer> >& p
 			pthread_yield();
 		}
 
-		if ((uint64_t) element != i)
+		if ((unsigned) element != i)
 		{
 			got_unexpected = true;
 		}
 	}
 	clock_gettime(CLOCK_REALTIME, &stop);
 
-	for (std::vector<producer<OneToOneProducer> >::iterator i = producers.begin(); i != producers.end(); i++)
+	for (std::vector<producer<CountProducer> >::iterator i = producers.begin(); i != producers.end(); i++)
 	{
 		if (got_unexpected)
 		{
@@ -94,7 +94,7 @@ uint64_t validate(Queue<int>& queue, std::vector<producer<OneToOneProducer> >& p
 		}
 	}
 
-	return Producer::diff(stop, start);
+	return Producer::tsdiff(stop, start);
 }
 
 
@@ -102,7 +102,7 @@ uint64_t validate(Queue<int>& queue, std::vector<producer<OneToOneProducer> >& p
 
 /* Run a validation test on a queue specialization */
 template <class Producer>
-bool run_test(Queue<int>& queue, unsigned repetitions, unsigned num_producers)
+bool run_test(Queue& queue, unsigned repetitions, unsigned num_producers)
 {
 	std::vector<producer<Producer> > producers;
 
@@ -159,10 +159,10 @@ bool run_test(Queue<int>& queue, unsigned repetitions, unsigned num_producers)
 	fprintf(stderr, "\n");
 
 	fprintf(stdout, "\033[1;96mTest result\033[0m\n");
-	fprintf(stdout, "Queue type    : %s\n", queue.getName().c_str());
-	fprintf(stdout, "Queue capacity: %u slots\n", queue.getCapacity());
+	fprintf(stdout, "Queue type    : %s\n", queue.type().c_str());
+	fprintf(stdout, "Queue capacity: %u slots\n", queue.capacity);
 	fprintf(stdout, "Queue size    : %u elements left (%s)\n", queue.size(), queue.empty() && queue.size() == 0 ? "\033[0;92mPASS\033[0m" : "\033[0;91mFAIL\033[0m");
-	fprintf(stdout, "Producer type : %s\n", producers[0].implementation->getType().c_str());
+	fprintf(stdout, "Producer type : %s\n", producers[0].implementation->type().c_str());
 	fprintf(stdout, "#Producers    : %u threads\n", num_producers);
 	fprintf(stdout, "#Repetitions  : %u elements per thread\n", repetitions);
 	fprintf(stdout, "Total duration: %.5f seconds\n", duration / (1000000000.0));
@@ -183,11 +183,11 @@ bool run_test(Queue<int>& queue, unsigned repetitions, unsigned num_producers)
 int main(void)
 {
 	int fail_count = 0;
-	LockingQueue<int> queue(QUEUE_SIZE);
+	LockingQueue queue(QUEUE_SIZE);
 
-	fail_count += !run_test<OneToOneProducer>(queue, REPETITIONS, 1);
+	fail_count += !run_test<CountProducer>(queue, REPETITIONS, 1);
 	
-	fail_count += !run_test<ManyToOneProducer>(queue, REPETITIONS, PRODUCERS);
+	fail_count += !run_test<IdRepeater>(queue, REPETITIONS, 3);
 
-	return fail_count == 0;
+	return fail_count != 0;
 }

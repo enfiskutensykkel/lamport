@@ -3,32 +3,33 @@
 
 #include "queue.h"
 #include <string>
+#include <cstdint>
 #include <pthread.h>
 
 
-template <typename T = int>
-class LockingQueue : public Queue<T>
+/*
+ * A contention queue that uses locks.
+ */
+class LockingQueue : public Queue
 {
 	public:
-		explicit LockingQueue(unsigned slots);
+		explicit LockingQueue(uint32_t slots);
 
 		virtual ~LockingQueue();
 
-		virtual std::string getName()
+		virtual std::string type()
 		{
 			return "LockingQueue";
 		};
 
-		virtual bool enqueue(const T& element);
+		virtual bool enqueue(int element);
 
-		virtual bool dequeue(T& element);
+		virtual bool dequeue(int& reference);
 
-		virtual unsigned size();
-
-		virtual bool empty();
+		virtual uint32_t size();
 
 	private:
-		pthread_mutex_t lock;
+		pthread_mutex_t lock;	// synchronization primitive
 };
 
 #endif

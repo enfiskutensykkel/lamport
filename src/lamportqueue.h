@@ -2,23 +2,34 @@
 #define __LAMPORT_QUEUE_H__
 
 #include "queue.h"
+#include <cstdint>
+#include <string>
 
 
-template <typename T = int>
-class LamportQueue : public Queue<T>
+/*
+ * An implementation of a Lamport's queue/
+ * This only works with one producer and one or more consumers.
+ */
+class LamportQueue : public Queue
 {
 	public:
-		explicit LamportQueue(unsigned slots);
+		explicit LamportQueue(uint32_t slots);
 
 		virtual ~LamportQueue();
 
-		virtual bool enqueue(const T& element);
+		virtual std::string type()
+		{
+			return "NonLockingQueue";
+		};
 
-		virtual bool dequeue(T& element);
+		virtual bool enqueue(int element);
 
-		virtual unsigned size();
+		virtual bool dequeue(int& reference);
 
-		virtual bool empty();
+		virtual uint32_t size();
+
+	private:
+		const uint32_t mask;
 };
 
 #endif

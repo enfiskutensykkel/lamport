@@ -1,13 +1,14 @@
 #include "producer.h"
-#include "onetooneproducer.h"
+#include "countproducer.h"
 #include "queue.h"
 #include <pthread.h>
 
 
 
-void OneToOneProducer::run(Queue<int>& queue, const bool& running)
+/* Produce a counting range from limit to 0 */
+void CountProducer::run(Queue& queue, const bool& running)
 {
-	unsigned long i = getRepetitions() + 1;
+	unsigned i = repetitions + 1;
 	while (running && --i != 0)
 	{
 		while (running && !queue.enqueue(i))

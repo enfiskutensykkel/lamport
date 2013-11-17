@@ -1,71 +1,52 @@
 #ifndef __QUEUE_H__
 #define __QUEUE_H__
 
-#include <cstdint>
 #include <string>
+#include <cstdint>
 
 
-template <typename T>
+/*
+ * An abstract class defining how a queue implementation should work.
+ */
 class Queue
 {
 	public:
-		explicit Queue(unsigned slots)
-			: capacity(1 << (32 - leading_zeros((uint32_t) slots - 1)))
-			, head(0), tail(0)
-		{
-			queue = new T*[capacity];
+		/* Allocate a queue buffer with at guaranteed number of slots */
+		explicit Queue(uint32_t slots);
 
-			for (unsigned i = 0; i < capacity; ++i)
-			{
-				queue[i] = nullptr;
-			}
-		};
-
-
-
-		virtual ~Queue()
-		{
-			for (unsigned i = 0; i < capacity; ++i)
-			{
-				if (queue[i] != nullptr)
-				{
-					delete queue[i];
-				}
-			}
-
-			delete[] queue;
-		};
-
+		/* Destroy the queue and free the queue buffer */
+		virtual ~Queue();
 		
-		virtual std::string getName() = 0;
+		/* Return a short name describing the queue type */
+		virtual std::string type() = 0;
 
-		virtual bool enqueue(const T& element) = 0;
+		/*
+		 * Enqueue an element.
+		 * Return true if the element was placed in the queue successfully.
+		 * Return false if the implementation failed to enqueue the element.
+		 */
+		virtual bool enqueue(int element) = 0;
 
-		virtual bool dequeue(T& element) = 0;
+		/*
+		 * Dequeue an element.
+		 * Return true if the element was dequeued and placed in the reference.
+		 * Return false if no element was dequeued.
+		 */
+		virtual bool dequeue(int& reference) = 0;
 
-		virtual unsigned size() = 0;
+		/* Return the size of the queue */
+		virtual uint32_t size() = 0;
 
-		virtual bool empty() = 0;
+		/* Returns true if the queue has no elements enqueued, false otherwise */
+		virtual bool empty();
 
-		uint32_t getCapacity()
-		{
-			return capacity;
-		};
+		/* The queue capacity (size of the queue buffer) */
+		const uint32_t capacity;
 
 	protected:
-		const uint32_t capacity;
-		uint64_t head;
-		uint64_t tail;
-
-		T** queue;
-
-	private:
-		static uint32_t leading_zeros(uint32_t i)
-		{
-			uint32_t p, c;
-			for (p = 1 << 31, c = 0; (p & i) == 0 && c < 32; p = p >> 1, ++c);
-			return c;
-		};
+		uint64_t head;	// index of the first element in the queue
+		uint64_t tail;	// index of the last element in the queue
+		int* buffer;	// the queue buffer
 };
 
 #endif

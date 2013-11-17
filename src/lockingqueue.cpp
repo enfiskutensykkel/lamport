@@ -1,12 +1,13 @@
 #include "queue.h"
 #include "lockingqueue.h"
-#include <pthread.h>
 #include <stdexcept>
+#include <cstdint>
+#include <pthread.h>
 
 
 
-template <>
-LockingQueue<int>::LockingQueue(unsigned slots)
+/* Create a locking queue and initialize synchronization primitives */
+LockingQueue::LockingQueue(uint32_t slots)
 	: Queue(slots)
 {
 	if (pthread_mutex_init(&lock, nullptr) != 0)
@@ -17,8 +18,8 @@ LockingQueue<int>::LockingQueue(unsigned slots)
 
 
 
-template <>
-LockingQueue<int>::~LockingQueue()
+/* Free resources */
+LockingQueue::~LockingQueue()
 {
 	if (pthread_mutex_destroy(&lock) != 0)
 	{
@@ -27,8 +28,8 @@ LockingQueue<int>::~LockingQueue()
 
 
 
-template <>
-bool LockingQueue<int>::enqueue(const int& element)
+/* Enqueue an element */
+bool LockingQueue::enqueue(int element)
 {
 	if (pthread_mutex_lock(&lock) != 0)
 	{
@@ -41,7 +42,7 @@ bool LockingQueue<int>::enqueue(const int& element)
 		return false;
 	}
 
-	queue[tail % capacity] = new int(element);
+	buffer[tail % capacity] = element;
 	++tail;
 
 	pthread_mutex_unlock(&lock);
@@ -50,8 +51,8 @@ bool LockingQueue<int>::enqueue(const int& element)
 
 
 
-template <>
-bool LockingQueue<int>::dequeue(int& element)
+/* Dequeue an element */
+bool LockingQueue::dequeue(int& element)
 {
 	if (pthread_mutex_lock(&lock) != 0)
 	{
@@ -64,9 +65,7 @@ bool LockingQueue<int>::dequeue(int& element)
 		return false;
 	}
 
-	element = *queue[head % capacity];
-	delete queue[head % capacity];
-	queue[head % capacity] = nullptr;
+	element = buffer[head % capacity];
 	++head;
 
 	pthread_mutex_unlock(&lock);
@@ -75,24 +74,16 @@ bool LockingQueue<int>::dequeue(int& element)
 
 
 
-template <>
-unsigned LockingQueue<int>::size()
+/* Return the number of elements currently enqueued */
+uint32_t LockingQueue::size()
 {
 	if (pthread_mutex_lock(&lock) != 0)
 	{
 		throw std::runtime_error("failed to take lock in size");
 	}
 
-	unsigned size = tail - head;
+	uint32_t size = tail - head;
 
 	pthread_mutex_unlock(&lock);
 	return size;
-}
-
-
-
-template <>
-bool LockingQueue<int>::empty()
-{
-	return size() == 0;
 }

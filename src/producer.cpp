@@ -5,8 +5,9 @@
 
 
 
-Producer::Producer(pthread_barrier_t& b, unsigned id, Queue<int>& q, uint64_t reps)
-	: barrier(b), queue(q), id(id), running(true), reps( reps )
+/* Spawn a new producer thread */
+Producer::Producer(pthread_barrier_t& b, unsigned id, Queue& q, unsigned r)
+	: id(id), repetitions(r), barrier(b), queue(q), running(true)
 {
 	if (pthread_create(&thread, nullptr, (void* (*)(void*)) &Producer::dispatch, static_cast<void*>(this)) != 0)
 	{
@@ -16,6 +17,7 @@ Producer::Producer(pthread_barrier_t& b, unsigned id, Queue<int>& q, uint64_t re
 
 
 
+/* Destroy the producer and join with thread */
 Producer::~Producer()
 {
 	running = false;
@@ -27,26 +29,13 @@ Producer::~Producer()
 
 
 
-unsigned Producer::getId()
-{
-	return id;
-}
-
-
-
-uint64_t Producer::getRepetitions()
-{
-	return reps;
-}
-
-
-
+/* Helper method to dispatch and synchronize threads */
 void Producer::dispatch(Producer* thread)
 {
 	int ret = pthread_barrier_wait(&thread->barrier);
 	if (ret != PTHREAD_BARRIER_SERIAL_THREAD && ret != 0)
 	{
-		// TODO: Do something clever
+		// TODO: Do something clever instead of just silently returning
 		return;
 	}
 
@@ -59,7 +48,7 @@ void Producer::dispatch(Producer* thread)
 
 
 /* Get the difference between two timespecs */
-uint64_t Producer::diff(const timespec& minuend, const timespec& subtrahend)
+uint64_t Producer::tsdiff(const timespec& minuend, const timespec& subtrahend)
 {
 	timespec difference;
 
