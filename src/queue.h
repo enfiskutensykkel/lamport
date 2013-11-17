@@ -47,6 +47,11 @@ class Queue
 
 		virtual bool empty() = 0;
 
+		uint32_t getCapacity()
+		{
+			return capacity;
+		};
+
 	protected:
 		const uint32_t capacity;
 		uint64_t head;

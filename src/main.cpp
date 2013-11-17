@@ -160,9 +160,11 @@ bool run_test(Queue<int>& queue, unsigned repetitions, unsigned num_producers)
 
 	fprintf(stdout, "\033[1;96mTest result\033[0m\n");
 	fprintf(stdout, "Queue type    : %s\n", queue.getName().c_str());
+	fprintf(stdout, "Queue capacity: %u slots\n", queue.getCapacity());
 	fprintf(stdout, "Queue size    : %u elements left (%s)\n", queue.size(), queue.empty() && queue.size() == 0 ? "\033[0;92mPASS\033[0m" : "\033[0;91mFAIL\033[0m");
 	fprintf(stdout, "Producer type : %s\n", producers[0].implementation->getType().c_str());
 	fprintf(stdout, "#Producers    : %u threads\n", num_producers);
+	fprintf(stdout, "#Repetitions  : %u elements per thread\n", repetitions);
 	fprintf(stdout, "Total duration: %.5f seconds\n", duration / (1000000000.0));
 	for (unsigned i = 0; i < num_producers; ++i)
 	{
