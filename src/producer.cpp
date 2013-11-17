@@ -5,8 +5,8 @@
 
 
 
-Producer::Producer(pthread_barrier_t& b, unsigned id, Queue<int>& q)
-	: barrier(b), queue(q), id(id), running(true)
+Producer::Producer(pthread_barrier_t& b, unsigned id, Queue<int>& q, uint64_t reps)
+	: barrier(b), queue(q), id(id), running(true), reps( reps )
 {
 	if (pthread_create(&thread, nullptr, (void* (*)(void*)) &Producer::dispatch, static_cast<void*>(this)) != 0)
 	{
@@ -30,6 +30,13 @@ Producer::~Producer()
 unsigned Producer::getId()
 {
 	return id;
+}
+
+
+
+uint64_t Producer::getRepetitions()
+{
+	return reps;
 }
 
 

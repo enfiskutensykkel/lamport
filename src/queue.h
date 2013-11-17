@@ -2,6 +2,7 @@
 #define __QUEUE_H__
 
 #include <cstdint>
+#include <string>
 
 
 template <typename T>
@@ -35,7 +36,8 @@ class Queue
 			delete[] queue;
 		};
 
-
+		
+		virtual std::string getName() = 0;
 
 		virtual bool enqueue(const T& element) = 0;
 

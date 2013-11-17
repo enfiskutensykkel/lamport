@@ -7,8 +7,12 @@
 
 void OneToOneProducer::run(Queue<int>& queue, const bool& running)
 {
-	unsigned long i = REPETITIONS + 1;
+	unsigned long i = getRepetitions() + 1;
 	while (running && --i != 0)
 	{
+		while (running && !queue.enqueue(i))
+		{
+			pthread_yield();
+		}
 	}
 }

@@ -2,6 +2,7 @@
 #define __LOCKING_QUEUE_H__
 
 #include "queue.h"
+#include <string>
 #include <pthread.h>
 
 
@@ -12,6 +13,11 @@ class LockingQueue : public Queue<T>
 		explicit LockingQueue(unsigned slots);
 
 		virtual ~LockingQueue();
+
+		virtual std::string getName()
+		{
+			return "LockingQueue";
+		};
 
 		virtual bool enqueue(const T& element);
 

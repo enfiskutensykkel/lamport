@@ -8,7 +8,7 @@ SRC_DIR=src
 CC=$(if $(shell which colorgcc),colorgcc,gcc)
 LD := gcc
 CFLAGS := -Wall -Wextra -pedantic
-LDLIBS := pthread stdc++ 
+LDLIBS := pthread stdc++ rt
 
 ### Generic make variables ###
 DEF := $(filter-out %DEBUG,$(DEFINES)) $(if $(filter DEBUG,$(DEFINES)),DEBUG,NDEBUG)

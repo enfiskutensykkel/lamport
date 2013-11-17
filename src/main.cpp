@@ -1,67 +1,133 @@
 #include "producer.h"
 #include "manytooneproducer.h"
+#include "onetooneproducer.h"
 #include "lockingqueue.h"
 #include "lamportqueue.h"
 #include <vector>
 #include <memory>
 #include <stdexcept>
 #include <cstdio>
+#include <cstdint>
 #include <pthread.h>
 #include <signal.h>
 #include <sys/time.h>
 
 
-
-typedef std::vector< std::shared_ptr<Producer> > producer_vec;
-static producer_vec producers;
-
-
-
-/* Exit quick and dirty */
-static void signal_handler(int signal)
+template <class Producer>
+struct producer
 {
-	switch (signal)
+	bool failed;
+	std::shared_ptr<Producer> implementation;
+
+	producer(Producer* p)
+		: failed(false), implementation( std::shared_ptr<Producer>(p) )
 	{
-		case SIGHUP:
-		case SIGTERM:
-		case SIGINT:
-			// Remove all thread references and force their destructor to run
-			producers.clear();
-			break;
+	};
+};
+
+
+
+uint64_t validate(Queue<int>& queue, std::vector<producer<ManyToOneProducer> >& producers, unsigned repetitions)
+{
+	timespec start, stop;
+	uint64_t i = repetitions * producers.size() + 1;
+	uint64_t* count = new uint64_t[producers.size()];
+	for (unsigned k = 0; k < producers.size(); ++k)
+	{
+		count[k] = 0;
 	}
+
+	clock_gettime(CLOCK_REALTIME, &start);
+	while (--i != 0)
+	{
+		int id;
+		while (!queue.dequeue(id))
+		{
+			pthread_yield();
+		}
+
+		++count[id];
+	}
+	clock_gettime(CLOCK_REALTIME, &stop);
+
+	for (std::vector<producer<ManyToOneProducer> >::iterator i = producers.begin(); i != producers.end(); i++)
+	{
+		if (count[i->implementation->getId()] != repetitions)
+		{
+			i->failed = true;
+		}
+	}
+
+	delete[] count;
+	return Producer::diff(stop, start);
 }
+
+
+
+uint64_t validate(Queue<int>& queue, std::vector<producer<OneToOneProducer> >& producers, unsigned repetitions)
+{
+	timespec start, stop;
+	uint64_t i = repetitions * producers.size() + 1;
+
+	bool got_unexpected = false;
+	clock_gettime(CLOCK_REALTIME, &start);
+	while (--i != 0)
+	{
+		int element;
+		while (!queue.dequeue(element))
+		{
+			pthread_yield();
+		}
+
+		if ((uint64_t) element != i)
+		{
+			got_unexpected = true;
+		}
+	}
+	clock_gettime(CLOCK_REALTIME, &stop);
+
+	for (std::vector<producer<OneToOneProducer> >::iterator i = producers.begin(); i != producers.end(); i++)
+	{
+		if (got_unexpected)
+		{
+			i->failed = true;
+		}
+	}
+
+	return Producer::diff(stop, start);
+}
+
 
 
 
 /* Run a validation test on a queue specialization */
 template <class Producer>
-bool validate(Queue<int>& queue, unsigned repetitions, unsigned num_producers)
+bool run_test(Queue<int>& queue, unsigned repetitions, unsigned num_producers)
 {
+	std::vector<producer<Producer> > producers;
+
 	pthread_barrier_t barrier;
 	if (pthread_barrier_init(&barrier, nullptr, num_producers + 1) != 0)
 	{
 		return false;
 	}
 
-	fprintf(stderr, "Creating producers...");
-	unsigned* count = new unsigned[num_producers];
+	fprintf(stderr, "%-40s", "Creating producers");
 	for (unsigned i = 0; i < num_producers; ++i)
 	{
 		try
 		{
-			producers.push_back( std::shared_ptr<Producer>( new Producer(barrier, i, queue) ) );
+			producers.push_back( new Producer(barrier, i, queue, repetitions) );
 		}
 		catch (const std::runtime_error& e)
 		{
 			fprintf(stderr, "FAIL\n");
 			return false;
 		}
-
-		count[i] = 0;
 	}
 	fprintf(stderr, "DONE\n");
 
-	fprintf(stderr, "Preparing...");
+	fprintf(stderr, "%-40s", "Synchronizing threads");
 	int ret = pthread_barrier_wait(&barrier);
 	if (ret != PTHREAD_BARRIER_SERIAL_THREAD && ret != 0)
 	{
@@ -73,46 +139,39 @@ bool validate(Queue<int>& queue, unsigned repetitions, unsigned num_producers)
 	fprintf(stderr, "DONE\n");
 
 
-	fprintf(stderr, "Running tests...");
-	unsigned long i = (repetitions * num_producers) + 1;
-	
-	timespec start, stop;
+	unsigned failed;
+	uint64_t duration;
 
-	clock_gettime(CLOCK_REALTIME, &start);
-	while (!producers.empty() && --i != 0)
+	fprintf(stderr, "%-40s", "Running test");
+	try
 	{
-		int id;
-		while (!producers.empty() && !queue.dequeue(id))
-		{
-			pthread_yield();
-		}
-
-		++count[id];
+		failed = 0;
+		duration = validate(queue, producers, repetitions);
+		fprintf(stderr, "%s\n", "DONE");
 	}
-	clock_gettime(CLOCK_REALTIME, &stop);
-	unsigned failed = num_producers - producers.size();
-	fprintf(stderr, "%s\n", failed == 0 ? "DONE" : "FAIL");
+	catch (const std::runtime_error& e)
+	{
+		pthread_barrier_destroy(&barrier);
+		fprintf(stderr, "%s\n", "FAIL");
+		return false;
+	}
+	pthread_barrier_destroy(&barrier);
+	fprintf(stderr, "\n");
 
-	unsigned long duration = Producer::diff(stop, start);
+	fprintf(stdout, "\033[1;96mTest result\033[0m\n");
+	fprintf(stdout, "Queue type    : %s\n", queue.getName().c_str());
+	fprintf(stdout, "Queue size    : %u elements left (%s)\n", queue.size(), queue.empty() && queue.size() == 0 ? "\033[0;92mPASS\033[0m" : "\033[0;91mFAIL\033[0m");
+	fprintf(stdout, "Producer type : %s\n", producers[0].implementation->getType().c_str());
+	fprintf(stdout, "#Producers    : %u threads\n", num_producers);
 	fprintf(stdout, "Total duration: %.5f seconds\n", duration / (1000000000.0));
-	if (failed == 0)
+	for (unsigned i = 0; i < num_producers; ++i)
 	{
-		for (i = 0; i < num_producers; ++i)
-		{
-			bool result = count[i] == repetitions;
-			fprintf(stdout, "    %02lu\t%s\n", 
-					i, 
-					result ? "\033[0;92mPASS\033[0m" : "\033[0;91mFAIL\033[0m");
-			
-			if (!result)
-			{
-				++failed;
-			}
-		}
+		fprintf(stdout, "    %2u\t%s\n", i, 
+				producers[i].failed ? "\033[0;91mFAIL\033[0m" : "\033[0;92mPASS\033[0m" );
+		failed += producers[i].failed;
 	}
-	fprintf(stdout, "%u out of %u tests passed.\n", (num_producers - failed), num_producers);
-
-	delete[] count;
+	fprintf(stdout, "%u out of %u producer threads passed\n", (num_producers - failed), num_producers);
+	fprintf(stdout, "\n");
 
 	return failed == 0;
 }
@@ -121,6 +180,12 @@ bool validate(Queue<int>& queue, unsigned repetitions, unsigned num_producers)
 
 int main(void)
 {
+	int fail_count = 0;
 	LockingQueue<int> queue(QUEUE_SIZE);
-	return !validate<ManyToOneProducer>(queue, REPETITIONS, PRODUCERS);
+
+	fail_count += !run_test<OneToOneProducer>(queue, REPETITIONS, 1);
+	
+	fail_count += !run_test<ManyToOneProducer>(queue, REPETITIONS, PRODUCERS);
+
+	return fail_count == 0;
 }
