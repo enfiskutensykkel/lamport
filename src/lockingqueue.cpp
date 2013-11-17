@@ -66,6 +66,7 @@ bool LockingQueue<int>::dequeue(int& element)
 
 	element = *queue[head % capacity];
 	delete queue[head % capacity];
+	queue[head % capacity] = nullptr;
 	++head;
 
 	pthread_mutex_unlock(&lock);
