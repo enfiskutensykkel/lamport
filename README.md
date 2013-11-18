@@ -1,5 +1,5 @@
-lamport
-=======
+Lamport's queue
+===============
 
 I was inspired to do this small project after doing a workshop on 
 *lock-free and high-performance concurrent algorithms* held by [Martin Thompson](https://github.com/mjpt777 "mjpt777")
