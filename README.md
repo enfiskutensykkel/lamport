@@ -21,7 +21,7 @@ but the code is written by me.
 
 
 How can I run it?
-=================
+-----------------
 
 To run this you need an 64-bits Intel x86, an OS that supports POSIX threads
 and be able to build and compile using GNU Make and GNU C++98 (i.e. use GCC).
@@ -32,7 +32,7 @@ this, running the performance test will be pointless.
 
 
 Limitations
-===========
+-----------
 
 From a code perspective, I haven't really had time to look into a decent
 testing framework. I will probably separate and create better tests for this
@@ -45,7 +45,7 @@ of the queue using mutexes, by only locking the tail pointer.
 
 
 Other optimisations
-===================
+-------------------
 
 It's pretty apparent that doing `mod` and `div` has a high performance impact,
 because of the architecture's inability to pipeline these instructions and that
