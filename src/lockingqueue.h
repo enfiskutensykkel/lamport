@@ -29,7 +29,7 @@ class LockingQueue : public Queue
 		virtual uint32_t size();
 
 	private:
-		pthread_mutex_t lock;	// synchronization primitive
+		pthread_mutex_t queue_lock;	// synchronization primitive
 };
 
 #endif

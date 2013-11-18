@@ -9,16 +9,16 @@
 /*
  * An implementation of a non-locking queue.
  */
-class NonLockingQueue : public Queue
+class LamportQueue : public Queue
 {
 	public:
-		explicit NonLockingQueue(uint32_t slots);
+		explicit LamportQueue(uint32_t slots);
 
-		virtual ~NonLockingQueue();
+		virtual ~LamportQueue();
 
 		virtual std::string type()
 		{
-			return "NonLockingQueue";
+			return "LamportQueue";
 		};
 
 		virtual bool enqueue(int element);
@@ -28,7 +28,7 @@ class NonLockingQueue : public Queue
 		virtual uint32_t size();
 
 	private:
-		const uint32_t mask;
+		const uint32_t mask;	// calculate index in buffer without doing expensive modulo operations
 };
 
 #endif

@@ -11,7 +11,7 @@
 LockingQueue::LockingQueue(uint32_t slots)
 	: Queue(slots)
 {
-	if (pthread_mutex_init(&lock, nullptr) != 0)
+	if (pthread_mutex_init(&queue_lock, nullptr) != 0)
 	{
 		assert(false);
 		throw std::runtime_error("failed to initialize queue lock");
@@ -23,7 +23,7 @@ LockingQueue::LockingQueue(uint32_t slots)
 /* Free resources */
 LockingQueue::~LockingQueue()
 {
-	if (pthread_mutex_destroy(&lock) != 0)
+	if (pthread_mutex_destroy(&queue_lock) != 0)
 	{
 		assert(false);
 	}
@@ -34,7 +34,7 @@ LockingQueue::~LockingQueue()
 /* Enqueue an element */
 bool LockingQueue::enqueue(int element)
 {
-	if (pthread_mutex_lock(&lock) != 0)
+	if (pthread_mutex_lock(&queue_lock) != 0)
 	{
 		assert(false);
 		throw std::runtime_error("failed to take lock in enqueue");
@@ -42,14 +42,14 @@ bool LockingQueue::enqueue(int element)
 
 	if (tail - head >= capacity)
 	{
-		pthread_mutex_unlock(&lock);
+		pthread_mutex_unlock(&queue_lock);
 		return false;
 	}
 
 	buffer[tail % capacity] = new int(element);
 	++tail;
 
-	pthread_mutex_unlock(&lock);
+	pthread_mutex_unlock(&queue_lock);
 	return true;
 }
 
@@ -58,7 +58,7 @@ bool LockingQueue::enqueue(int element)
 /* Dequeue an element */
 bool LockingQueue::dequeue(int& element)
 {
-	if (pthread_mutex_lock(&lock) != 0)
+	if (pthread_mutex_lock(&queue_lock) != 0)
 	{
 		assert(false);
 		throw std::runtime_error("failed to take lock in dequeue");
@@ -66,7 +66,7 @@ bool LockingQueue::dequeue(int& element)
 
 	if (tail == head)
 	{
-		pthread_mutex_unlock(&lock);
+		pthread_mutex_unlock(&queue_lock);
 		return false;
 	}
 
@@ -75,7 +75,7 @@ bool LockingQueue::dequeue(int& element)
 	buffer[head % capacity] = nullptr;
 	++head;
 
-	pthread_mutex_unlock(&lock);
+	pthread_mutex_unlock(&queue_lock);
 	return true;
 }
 
@@ -84,7 +84,7 @@ bool LockingQueue::dequeue(int& element)
 /* Return the number of elements currently enqueued */
 uint32_t LockingQueue::size()
 {
-	if (pthread_mutex_lock(&lock) != 0)
+	if (pthread_mutex_lock(&queue_lock) != 0)
 	{
 		assert(false);
 		throw std::runtime_error("failed to take lock in size");
@@ -92,6 +92,6 @@ uint32_t LockingQueue::size()
 
 	uint32_t size = tail - head;
 
-	pthread_mutex_unlock(&lock);
+	pthread_mutex_unlock(&queue_lock);
 	return size;
 }

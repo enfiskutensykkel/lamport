@@ -2,6 +2,7 @@
 #include "idrepeater.h"
 #include "countproducer.h"
 #include "lockingqueue.h"
+#include "optimizedqueue.h"
 #include "nonlockingqueue.h"
 #include <vector>
 #include <memory>
@@ -112,7 +113,7 @@ bool run_test(Queue& queue, unsigned repetitions, unsigned num_producers)
 		return false;
 	}
 
-	fprintf(stderr, "%-40s", "Creating producers");
+	fprintf(stderr, "%-25s", "Creating producers");
 	for (unsigned i = 0; i < num_producers; ++i)
 	{
 		try
@@ -127,7 +128,7 @@ bool run_test(Queue& queue, unsigned repetitions, unsigned num_producers)
 	}
 	fprintf(stderr, "DONE\n");
 
-	fprintf(stderr, "%-40s", "Synchronizing threads");
+	fprintf(stderr, "%-25s", "Synchronizing threads");
 	int ret = pthread_barrier_wait(&barrier);
 	if (ret != PTHREAD_BARRIER_SERIAL_THREAD && ret != 0)
 	{
@@ -142,7 +143,7 @@ bool run_test(Queue& queue, unsigned repetitions, unsigned num_producers)
 	unsigned failed;
 	uint64_t duration;
 
-	fprintf(stderr, "%-40s", "Running test");
+	fprintf(stderr, "%-25s", "Running test");
 	try
 	{
 		failed = 0;
@@ -162,9 +163,9 @@ bool run_test(Queue& queue, unsigned repetitions, unsigned num_producers)
 	fprintf(stdout, "Queue type    : %s\n", queue.type().c_str());
 	fprintf(stdout, "Queue capacity: %u slots\n", queue.capacity);
 	fprintf(stdout, "Queue size    : %u elements left (%s)\n", queue.size(), queue.empty() && queue.size() == 0 ? "\033[0;92mPASS\033[0m" : "\033[0;91mFAIL\033[0m");
+	fprintf(stdout, "Queue elements: %u elements per thread\n", repetitions);
 	fprintf(stdout, "Producer type : %s\n", producers[0].implementation->type().c_str());
-	fprintf(stdout, "#Producers    : %u threads\n", num_producers);
-	fprintf(stdout, "#Repetitions  : %u elements per thread\n", repetitions);
+	fprintf(stdout, "Producers     : %u threads\n", num_producers);
 	fprintf(stdout, "Total duration: %.5f seconds\n", duration / (1000000000.0));
 	for (unsigned i = 0; i < num_producers; ++i)
 	{
@@ -182,13 +183,16 @@ bool run_test(Queue& queue, unsigned repetitions, unsigned num_producers)
 
 int main(void)
 {
-	int fail_count = 0;
-//	LockingQueue queue(QUEUE_SIZE);
-	NonLockingQueue queue(QUEUE_SIZE);
+	OptimizedLockingQueue locking(QUEUE_SIZE);
+	LamportQueue lockfree(QUEUE_SIZE);
 
-	fail_count += !run_test<CountProducer>(queue, REPETITIONS, 1);
+	int fail_count = 0;
+
+	fail_count += !run_test<CountProducer>(locking, REPETITIONS, 1);
+	fail_count += !run_test<CountProducer>(lockfree, REPETITIONS, 1);
 	
-	fail_count += !run_test<IdRepeater>(queue, REPETITIONS, 3);
+	fail_count += !run_test<IdRepeater>(locking, REPETITIONS, PRODUCERS);
+	fail_count += !run_test<IdRepeater>(lockfree, REPETITIONS, PRODUCERS);
 
 	return fail_count != 0;
 }

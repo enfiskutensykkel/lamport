@@ -22,7 +22,7 @@ bool CAS(uint64_t& val, uint64_t expected, uint64_t updated)
 
 
 /* Create a NonLocking's queue */
-NonLockingQueue::NonLockingQueue(uint32_t slots)
+LamportQueue::LamportQueue(uint32_t slots)
 	: Queue(slots), mask(capacity - 1)
 {
 }
@@ -30,14 +30,14 @@ NonLockingQueue::NonLockingQueue(uint32_t slots)
 
 
 /* Destroy the queue and free resources */
-NonLockingQueue::~NonLockingQueue()
+LamportQueue::~LamportQueue()
 {
 }
 
 
 
 /* Enqueue an element */
-bool NonLockingQueue::enqueue(int element)
+bool LamportQueue::enqueue(int element)
 {
 	uint64_t curr_tail, curr_head;
 
@@ -58,9 +58,9 @@ bool NonLockingQueue::enqueue(int element)
 }
 
 
-#include <cstdio>
+
 /* Dequeue an element */
-bool NonLockingQueue::dequeue(int& element)
+bool LamportQueue::dequeue(int& element)
 {
 	uint64_t curr_head = head;
 	if (curr_head == tail)
@@ -88,7 +88,7 @@ bool NonLockingQueue::dequeue(int& element)
 
 
 /* Return the number of enqueued elements */
-uint32_t NonLockingQueue::size()
+uint32_t LamportQueue::size()
 {
 	return 0;
 }
