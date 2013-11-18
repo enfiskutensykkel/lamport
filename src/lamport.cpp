@@ -83,6 +83,7 @@ bool LamportQueue::dequeue(int& element)
 	delete buffer[curr_head & mask];
 	buffer[curr_head & mask] = nullptr;
 
+	// As the very last thing we do, we update the head pointer to signal others that we're done
 	head = curr_head + 1;
 
 	return true;
