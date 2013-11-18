@@ -3,7 +3,7 @@
 #include "countproducer.h"
 #include "lockingqueue.h"
 #include "optimizedqueue.h"
-#include "nonlockingqueue.h"
+#include "lamport.h"
 #include <vector>
 #include <memory>
 #include <stdexcept>
@@ -113,6 +113,7 @@ bool run_test(Queue& queue, unsigned repetitions, unsigned num_producers)
 		return false;
 	}
 
+	fprintf(stderr, "Testing %s...\n", queue.type().c_str());
 	fprintf(stderr, "%-25s", "Creating producers");
 	for (unsigned i = 0; i < num_producers; ++i)
 	{
@@ -169,7 +170,7 @@ bool run_test(Queue& queue, unsigned repetitions, unsigned num_producers)
 	fprintf(stdout, "Total duration: %.5f seconds\n", duration / (1000000000.0));
 	for (unsigned i = 0; i < num_producers; ++i)
 	{
-		fprintf(stdout, "    %2u\t%s\n", i, 
+		fprintf(stdout, "    %2u\t%s\n", i + 1, 
 				producers[i].failed ? "\033[0;91mFAIL\033[0m" : "\033[0;92mPASS\033[0m" );
 		failed += producers[i].failed;
 	}
@@ -183,15 +184,18 @@ bool run_test(Queue& queue, unsigned repetitions, unsigned num_producers)
 
 int main(void)
 {
-	OptimizedLockingQueue locking(QUEUE_SIZE);
+	LockingQueue locking(QUEUE_SIZE);
+	OptimizedLockingQueue locking_optimized(QUEUE_SIZE);
 	LamportQueue lockfree(QUEUE_SIZE);
 
 	int fail_count = 0;
 
 	fail_count += !run_test<CountProducer>(locking, REPETITIONS, 1);
+	fail_count += !run_test<CountProducer>(locking_optimized, REPETITIONS, 1);
 	fail_count += !run_test<CountProducer>(lockfree, REPETITIONS, 1);
 	
 	fail_count += !run_test<IdRepeater>(locking, REPETITIONS, PRODUCERS);
+	fail_count += !run_test<IdRepeater>(locking_optimized, REPETITIONS, PRODUCERS);
 	fail_count += !run_test<IdRepeater>(lockfree, REPETITIONS, PRODUCERS);
 
 	return fail_count != 0;

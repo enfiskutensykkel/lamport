@@ -1,5 +1,5 @@
 #include "queue.h"
-#include "nonlockingqueue.h"
+#include "lamport.h"
 #include "cas.h"
 #include <cstdint>
 
@@ -41,6 +41,7 @@ bool LamportQueue::enqueue(int element)
 {
 	uint64_t curr_tail, curr_head;
 
+	// Try to take ticket for a slot atomically
 	do
 	{
 		curr_head = head;
@@ -53,6 +54,7 @@ bool LamportQueue::enqueue(int element)
 	}
 	while (!CAS(tail, curr_tail, curr_tail + 1));
 
+	// We got the ticket for this slot, so we can take our time inserting
 	buffer[curr_tail & mask] = new int(element);
 	return true;
 }
@@ -68,6 +70,7 @@ bool LamportQueue::dequeue(int& element)
 		return false;
 	}
 
+	// A producer may take some time inserting an element, so we'll just wait
 	int* ptr;
 	do
 	{
