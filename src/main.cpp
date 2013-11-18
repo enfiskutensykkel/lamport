@@ -2,7 +2,7 @@
 #include "idrepeater.h"
 #include "countproducer.h"
 #include "lockingqueue.h"
-#include "lamportqueue.h"
+#include "nonlockingqueue.h"
 #include <vector>
 #include <memory>
 #include <stdexcept>
@@ -50,7 +50,7 @@ uint64_t validate(Queue& queue, std::vector<producer<IdRepeater> >& producers, u
 	}
 	clock_gettime(CLOCK_REALTIME, &stop);
 
-	for (std::vector<producer<IdRepeater> >::iterator i = producers.begin(); i != producers.end(); i++)
+	for (auto i = producers.begin(); i != producers.end(); i++)
 	{
 		if (count[i->implementation->id] != repetitions)
 		{
@@ -86,7 +86,7 @@ uint64_t validate(Queue& queue, std::vector<producer<CountProducer> >& producers
 	}
 	clock_gettime(CLOCK_REALTIME, &stop);
 
-	for (std::vector<producer<CountProducer> >::iterator i = producers.begin(); i != producers.end(); i++)
+	for (auto i = producers.begin(); i != producers.end(); i++)
 	{
 		if (got_unexpected)
 		{
@@ -183,7 +183,8 @@ bool run_test(Queue& queue, unsigned repetitions, unsigned num_producers)
 int main(void)
 {
 	int fail_count = 0;
-	LockingQueue queue(QUEUE_SIZE);
+//	LockingQueue queue(QUEUE_SIZE);
+	NonLockingQueue queue(QUEUE_SIZE);
 
 	fail_count += !run_test<CountProducer>(queue, REPETITIONS, 1);
 	

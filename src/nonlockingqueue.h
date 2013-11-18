@@ -1,5 +1,5 @@
-#ifndef __LAMPORT_QUEUE_H__
-#define __LAMPORT_QUEUE_H__
+#ifndef __NON_LOCKING_QUEUE_H__
+#define __NON_LOCKING_QUEUE_H__
 
 #include "queue.h"
 #include <cstdint>
@@ -7,15 +7,14 @@
 
 
 /*
- * An implementation of a Lamport's queue/
- * This only works with one producer and one or more consumers.
+ * An implementation of a non-locking queue.
  */
-class LamportQueue : public Queue
+class NonLockingQueue : public Queue
 {
 	public:
-		explicit LamportQueue(uint32_t slots);
+		explicit NonLockingQueue(uint32_t slots);
 
-		virtual ~LamportQueue();
+		virtual ~NonLockingQueue();
 
 		virtual std::string type()
 		{

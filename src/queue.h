@@ -46,7 +46,7 @@ class Queue
 	protected:
 		uint64_t head;	// index of the first element in the queue
 		uint64_t tail;	// index of the last element in the queue
-		int* buffer;	// the queue buffer
+		int** buffer;	// the queue buffer
 };
 
 #endif

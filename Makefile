@@ -11,7 +11,7 @@ CFLAGS := -Wall -Wextra -pedantic
 LDLIBS := pthread stdc++ rt
 
 ### Generic make variables ###
-DEF := $(filter-out %DEBUG,$(DEFINES)) $(if $(filter DEBUG,$(DEFINES)),DEBUG,NDEBUG)
+DEF := $(filter-out %DEBUG,$(DEFINES)) 
 SRC := $(shell find $(SRC_DIR) -type f -regextype posix-extended -regex ".+\.cpp")
 HDR := $(shell find $(SRC_DIR) -type f -regextype posix-extended -regex ".+\.h")
 ALL := $(SRC) $(HDR) Makefile LICENSE README.md
@@ -28,7 +28,7 @@ debug: all
 define compile_target
 $(OBJ_DIR)/$(2): $(1) $(HDR)
 	-@mkdir -p $$(@D)
-	$$(CC) -x c++ -std=gnu++11 $$(CFLAGS) $$(if $$(filter DEBUG,$$(DEF)),-g,) $$(addprefix -D,$$(DEF:-D%=D)) -o $$@ -c $$<
+	$$(CC) -x c++ -std=gnu++11 $$(CFLAGS) $$(if $$(filter DEBUG,$$(DEF)),-g,-DNDEBUG) $$(addprefix -D,$$(DEF:-D%=D)) -o $$@ -c $$<
 OBJ += $(OBJ_DIR)/$(2)
 endef
 

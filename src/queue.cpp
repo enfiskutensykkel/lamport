@@ -1,6 +1,7 @@
 #include "queue.h"
 #include <stdexcept>
 #include <cstdint>
+#include <assert.h>
 
 
 
@@ -21,18 +22,31 @@ Queue::Queue(uint32_t slots)
 	, head(0), tail(0)
 	, buffer(nullptr)
 {
-	buffer = new int[capacity];
+	buffer = new int*[capacity];
 	if (buffer == nullptr)
 	{
 		throw std::runtime_error("failed to allocate queue buffer");
 	}
+
+	for (uint32_t i = 0; i < capacity; ++i)
+	{
+		buffer[i] = nullptr;
+	}
 }
+
 
 
 
 /* Destroy the queue object and free the queue buffer */
 Queue::~Queue()
 {
+#ifndef NDEBUG
+	for (uint32_t i = 0; i < capacity; ++i)
+	{
+		assert(buffer[i] == nullptr);
+	}
+#endif
+
 	delete[] buffer;
 }
 

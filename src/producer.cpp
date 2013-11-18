@@ -2,6 +2,7 @@
 #include <pthread.h>
 #include <stdexcept>
 #include <cstdint>
+#include <assert.h>
 
 
 
@@ -11,6 +12,7 @@ Producer::Producer(pthread_barrier_t& b, unsigned id, Queue& q, unsigned r)
 {
 	if (pthread_create(&thread, nullptr, (void* (*)(void*)) &Producer::dispatch, static_cast<void*>(this)) != 0)
 	{
+		assert(false);
 		throw std::runtime_error("failed to create thread");
 	}
 }
@@ -23,7 +25,7 @@ Producer::~Producer()
 	running = false;
 	if (pthread_join(thread, nullptr) != 0)
 	{
-
+		assert(false);
 	}
 }
 
@@ -35,8 +37,8 @@ void Producer::dispatch(Producer* thread)
 	int ret = pthread_barrier_wait(&thread->barrier);
 	if (ret != PTHREAD_BARRIER_SERIAL_THREAD && ret != 0)
 	{
-		// TODO: Do something clever instead of just silently returning
-		return;
+		assert(false);
+		throw std::runtime_error("failed to wait on barrier in thread");
 	}
 
 	if (thread->running)
