@@ -1,11 +1,11 @@
 #include "queue.h"
 #include "nonlockingqueue.h"
+#include "cas.h"
 #include <cstdint>
 
 
 
 /* An atomic compare-and-swap operation */
-static inline bool CAS(uint64_t& value, uint64_t expected_value, uint64_t updated_value) __attribute__((always_inline));
 bool CAS(uint64_t& val, uint64_t expected, uint64_t updated)
 {
 	uint8_t ret;
