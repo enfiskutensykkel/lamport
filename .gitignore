@@ -1,4 +1,4 @@
-contention-queue
+lamport
 build/*
 .*.swp
 *~

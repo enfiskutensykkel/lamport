@@ -1,5 +1,5 @@
 ### Makefile for project ###
-PROJECT=contention-queue
+PROJECT=lamport
 DEFINES=REPETITIONS=1000000 PRODUCERS=3 QUEUE_SIZE=400
 OBJ_DIR=build
 SRC_DIR=src
