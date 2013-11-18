@@ -56,3 +56,6 @@ performance drastically. I haven't done any other optimizations, but of course
 inlining functions, reducing memory access and references (and trying to hit
 the cache more often), tuning and tweaking compiler flags etc would also be fun
 to do at some point.
+
+**Note:** If you turn on too aggressive compiler optimizations (like `-O3`),
+weird things start to happen.
