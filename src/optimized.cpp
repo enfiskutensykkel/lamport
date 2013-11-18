@@ -1,5 +1,5 @@
 #include "queue.h"
-#include "optimizedqueue.h"
+#include "optimized.h"
 #include <stdexcept>
 #include <cstdint>
 #include <pthread.h>

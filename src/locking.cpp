@@ -1,5 +1,5 @@
 #include "queue.h"
-#include "lockingqueue.h"
+#include "locking.h"
 #include <stdexcept>
 #include <cstdint>
 #include <pthread.h>

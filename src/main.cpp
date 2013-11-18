@@ -1,8 +1,8 @@
 #include "producer.h"
 #include "idrepeater.h"
 #include "countproducer.h"
-#include "lockingqueue.h"
-#include "optimizedqueue.h"
+#include "locking.h"
+#include "optimized.h"
 #include "lamport.h"
 #include <vector>
 #include <memory>
