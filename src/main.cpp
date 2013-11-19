@@ -190,9 +190,9 @@ int main(void)
 
 	int fail_count = 0;
 
-	fail_count += !run_test<CountProducer>(locking, REPETITIONS, 1);
-	fail_count += !run_test<CountProducer>(locking_optimized, REPETITIONS, 1);
-	fail_count += !run_test<CountProducer>(lockfree, REPETITIONS, 1);
+	//fail_count += !run_test<CountProducer>(locking, REPETITIONS, 1);
+	//fail_count += !run_test<CountProducer>(locking_optimized, REPETITIONS, 1);
+	//fail_count += !run_test<CountProducer>(lockfree, REPETITIONS, 1);
 	
 	fail_count += !run_test<IdRepeater>(locking, REPETITIONS, PRODUCERS);
 	fail_count += !run_test<IdRepeater>(locking_optimized, REPETITIONS, PRODUCERS);

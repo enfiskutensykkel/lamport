@@ -94,5 +94,5 @@ bool LamportQueue::dequeue(int& element)
 /* Return the number of enqueued elements */
 uint32_t LamportQueue::size()
 {
-	return 0;
+	return tail - head;
 }
