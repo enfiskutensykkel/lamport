@@ -51,11 +51,11 @@ uint64_t validate(Queue& queue, std::vector<producer<IdRepeater> >& producers, u
 	}
 	clock_gettime(CLOCK_REALTIME, &stop);
 
-	for (auto i = producers.begin(); i != producers.end(); i++)
+	for (producer<IdRepeater>& p: producers)
 	{
-		if (count[i->implementation->id] != repetitions)
+		if (count[p.implementation->id] != repetitions)
 		{
-			i->failed = true;
+			p.failed = true;
 		}
 	}
 
@@ -68,9 +68,15 @@ uint64_t validate(Queue& queue, std::vector<producer<IdRepeater> >& producers, u
 uint64_t validate(Queue& queue, std::vector<producer<CountProducer> >& producers, unsigned repetitions)
 {
 	timespec start, stop;
-	unsigned i = repetitions * producers.size() + 1;
+	unsigned i;
 
-	bool got_unexpected = false;
+	unsigned* counts = new unsigned[repetitions];
+	for (i = 1; i < repetitions + 1; ++i)
+	{
+		counts[i] = 0;
+	}
+
+	i = repetitions * producers.size() + 1;
 	clock_gettime(CLOCK_REALTIME, &start);
 	while (--i != 0)
 	{
@@ -80,18 +86,26 @@ uint64_t validate(Queue& queue, std::vector<producer<CountProducer> >& producers
 			pthread_yield();
 		}
 
-		if ((unsigned) element != i)
-		{
-			got_unexpected = true;
-		}
+		++counts[element];
+
 	}
 	clock_gettime(CLOCK_REALTIME, &stop);
 
-	for (auto i = producers.begin(); i != producers.end(); i++)
+	for (i = 1; i < repetitions + 1; ++i)
 	{
-		if (got_unexpected)
+		if (counts[i] != producers.size())
 		{
-			i->failed = true;
+			printf("counts[%u] = %u\n", i, counts[i]);
+			break;
+		}
+	}
+
+	delete[] counts;
+	for (producer<CountProducer>& p: producers)
+	{
+		if (i != repetitions + 1)
+		{
+			p.failed = true;
 		}
 	}
 
@@ -190,9 +204,9 @@ int main(void)
 
 	int fail_count = 0;
 
-	//fail_count += !run_test<CountProducer>(locking, REPETITIONS, 1);
-	//fail_count += !run_test<CountProducer>(locking_optimized, REPETITIONS, 1);
-	//fail_count += !run_test<CountProducer>(lockfree, REPETITIONS, 1);
+	fail_count += !run_test<CountProducer>(locking, REPETITIONS, PRODUCERS);
+	fail_count += !run_test<CountProducer>(locking_optimized, REPETITIONS, PRODUCERS);
+	fail_count += !run_test<CountProducer>(lockfree, REPETITIONS, PRODUCERS);
 	
 	fail_count += !run_test<IdRepeater>(locking, REPETITIONS, PRODUCERS);
 	fail_count += !run_test<IdRepeater>(locking_optimized, REPETITIONS, PRODUCERS);
