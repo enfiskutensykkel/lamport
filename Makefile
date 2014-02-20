@@ -12,13 +12,13 @@ LDLIBS := pthread stdc++ rt
 
 ### Generic make variables ###
 DEF := $(filter-out %DEBUG,$(DEFINES)) 
-SRC := $(shell find $(SRC_DIR) -type f -regextype posix-extended -regex ".+\.cpp")
-HDR := $(shell find $(SRC_DIR) -type f -regextype posix-extended -regex ".+\.h")
-ALL := $(SRC) $(HDR) Makefile LICENSE README.md
+SRC := $(wildcard $(SRC_DIR)/*.cpp)
+HDR := $(wildcard $(SRC_DIR)/*.h)
+ALL := $(SRC) $(HDR) Makefile README.md
 
 
 ### Make targets ###
-.PHONY: $(PROJECT) all debug clean realclean todo
+.PHONY: $(PROJECT) all debug clean distclean todo tar
 all: $(PROJECT)
 
 debug: DEF += DEBUG
@@ -40,10 +40,15 @@ $(PROJECT): $(OBJ)
 clean:
 	-$(RM) $(OBJ)
 
-realclean: clean
+distclean: clean
 	-$(RM) $(PROJECT)
 
 todo:
 	-@for file in $(ALL:Makefile=); do \
 		fgrep -H -e TODO -e FIXME $$file; \
 	done; true
+
+tar:
+	ln -s . $(PROJECT)
+	tar -cz -f $(PROJECT)-$(shell date +%Y-%m-%d_%H-%M-%S).tar.gz $(addprefix $(PROJECT)/,$(ALL))
+	-$(RM) $(PROJECT)
