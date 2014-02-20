@@ -51,7 +51,7 @@ static uint64_t test_dequeuing(Queue& queue, std::vector<TProducer>& producers, 
 {
 	timespec start, stop;
 	unsigned* count = new unsigned[producers.size()];
-	bzero((void*) count, producers.size()); // not very C++-ish, C++ purists would complain about this
+	bzero((void*) count, producers.size() * sizeof(unsigned)); // not very C++-ish, C++ purists would complain about this
 
 #ifndef NDEBUG
 	for (TProducer& test: producers)
@@ -79,7 +79,7 @@ static uint64_t test_dequeuing(Queue& queue, std::vector<TProducer>& producers, 
 
 	for (TProducer& test: producers)
 	{
-		test.second = count[test.first->value] == repetitions;
+		test.second = (count[test.first->value] == repetitions);
 	}
 
 	delete[] count;
@@ -160,8 +160,16 @@ bool Producer::test_queue(Queue& queue, unsigned repetitions, unsigned num_threa
 	unsigned failed = 0;
 	for (unsigned i = 0; i < tests.size(); ++i)
 	{
-		fprintf(stdout, "    %2u\t%s\n", i + 1, tests[i].second ? "\033[0;92mPASS\033[0m" : "\033[0;91mFAIL\033[0m" ); 
-		failed += !tests[i].second;
+		fprintf(stdout, "    %2u\t", i + 1);
+		if (!tests[i].second)
+		{
+			fprintf(stdout, "\033[0;91mFAIL\033[0m\n"); 
+			++failed;
+		}
+		else
+		{
+			fprintf(stdout, "\033[0;92mPASS\033[0m\n");
+		}
 	}
 	fprintf(stdout, "%u out of %u producer threads passed\n", (num_threads - failed), num_threads);
 	fprintf(stdout, "\n");
