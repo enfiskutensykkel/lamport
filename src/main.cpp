@@ -2,8 +2,6 @@
 #include "locking.h"
 #include "optimized.h"
 #include "lamport.h"
-#include <cstdio>
-#include <signal.h>
 
 
 
@@ -13,9 +11,10 @@ int main(void)
 	OptimizedLockingQueue locking_optimized(QUEUE_SIZE);
 	LamportQueue lockfree(QUEUE_SIZE);
 
-	Producer::test_queue(locking, REPETITIONS, PRODUCERS);
-	Producer::test_queue(locking_optimized, REPETITIONS, PRODUCERS);
-	Producer::test_queue(lockfree, REPETITIONS, PRODUCERS);
+	unsigned failed = 0;
+	failed += ! Producer::test_queue(locking, REPETITIONS, PRODUCERS);
+	failed += ! Producer::test_queue(locking_optimized, REPETITIONS, PRODUCERS);
+	failed += ! Producer::test_queue(lockfree, REPETITIONS, PRODUCERS);
 
-	return 0;
+	return failed == 0;
 }
