@@ -46,7 +46,7 @@ static inline uint64_t tsdiff(const timespec& minuend, const timespec& subtrahen
 
 
 
-/* Helper function to validate a queue */
+/* Helper function to "consume" a queue */
 static uint64_t test_dequeuing(Queue& queue, std::vector<TProducer>& producers, unsigned repetitions)
 {
 	timespec start, stop;
