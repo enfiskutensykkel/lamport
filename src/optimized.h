@@ -30,7 +30,7 @@ class OptimizedLockingQueue : public Queue
 
 	private:
 		pthread_mutex_t tail_lock;	// synchronization primitive
-		const uint32_t mask;     	// calculate index in buffer 
+		const uint32_t mask;     	// calculate index in buffer without doing mod/div
 };
 
 #endif

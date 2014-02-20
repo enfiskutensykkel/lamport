@@ -21,7 +21,7 @@ bool CAS(uint64_t& val, uint64_t expected, uint64_t updated)
 
 
 
-/* Create a NonLocking's queue */
+/* Create a Lamport's queue */
 LamportQueue::LamportQueue(uint32_t slots)
 	: Queue(slots), mask(capacity - 1)
 {

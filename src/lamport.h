@@ -7,7 +7,7 @@
 
 
 /*
- * An implementation of a non-locking queue.
+ * An implementation of a non-locking (lock-free) queue.
  */
 class LamportQueue : public Queue
 {
@@ -28,7 +28,8 @@ class LamportQueue : public Queue
 		virtual uint32_t size();
 
 	private:
-		const uint32_t mask;	// calculate index in buffer without doing expensive modulo operations
+		// calculate index in buffer without doing expensive modulo operations
+		const uint32_t mask;
 };
 
 #endif
