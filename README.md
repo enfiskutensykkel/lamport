@@ -27,9 +27,11 @@ and be able to build and compile using GNU Make and GNU C++11 (i.e. use Linux + 
 
 You should also tweak the number of concurrent threads to how many CPUs you 
 have, alternatively have a CPU that supports hyperthreading. If you don't do
-this, running the performance test will be pointless. I'm defaulting to 4 
-threads, since this can run on a dual-core machine that supports 
-hyperthreading.
+this, running the performance test will be pointless -- on a Intel Core 2 
+machine I actually got worse performance for the lock-free queue.
+I'm defaulting to 4  threads, since this can run on a dual-core machine that
+supports hyperthreading, but this is easily changed at compile time by 
+editing the `Makefile`.
 
 
 Limitations
@@ -67,6 +69,6 @@ Future work
 
 At some point I would like to test multiple consumers, e.g. a scenario with 5-6
 producers and 2-3 consumers. This would involve a minor redesign as the consumer
-thread is now the main thread. It would also involve dropping the optimized 
+thread is now the main thread. It would also involve dropping the "optimized"
 queue as I would need to safe-guard the `head` pointer as well. Another future 
 experiment would be to test the impact of (atomic) memory loads.
