@@ -24,7 +24,7 @@ How can I run it?
 -----------------
 
 To run this you need an 64-bits Intel x86, an OS that supports POSIX threads
-and be able to build and compile using GNU Make and GNU C++11 (i.e. use GCC).
+and be able to build and compile using GNU Make and GNU C++11 (i.e. use Linux + GCC).
 
 You should also tweak the number of concurrent threads to how many CPUs you 
 have, alternatively have a CPU that supports hyperthreading. If you don't do
