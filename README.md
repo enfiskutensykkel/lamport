@@ -68,6 +68,5 @@ Future work
 At some point I would like to test multiple consumers, e.g. a scenario with 5-6
 producers and 2-3 consumers. This would involve a minor redesign as the consumer
 thread is now the main thread. It would also involve dropping the optimized 
-queue as I would need to safe-guard the `head` pointer as well.
-
-Another future experiment would be to test the impact of (atomic) memory loads.
+queue as I would need to safe-guard the `head` pointer as well. Another future 
+experiment would be to test the impact of (atomic) memory loads.
