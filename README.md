@@ -13,12 +13,10 @@ What is it?
 This project is simply an implementation of two bounded-buffer queues for
 the *producer-consumer* problem, one which uses POSIX mutexes and one
 implemented as a [Lamport's queue](http://en.wikipedia.org/wiki/Lamport%27s_bakery_algorithm)
-using an atomic compare-and-swap subroutine. I'm also doing a validation
-test (by simply letting one producer insert a range of numbers and reading 
-them out again) and a performance test (by having multiple producers compete
-over the queue). The test scenarios and the idea itself are blatently ripped 
-off from the workshop, but the code is written entirely by me.
-
+using an atomic compare-and-swap subroutine. I'm doing a performance test by
+having multiple producers compete over the queue (contention). The design of 
+the test is taken from the workshop, but the implementation is entirely 
+written by me.
 
 How can I run it?
 -----------------
