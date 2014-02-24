@@ -15,8 +15,8 @@ the *producer-consumer* problem, one which uses POSIX mutexes and one
 implemented as a [Lamport's queue](http://en.wikipedia.org/wiki/Lamport%27s_bakery_algorithm)
 using an atomic compare-and-swap subroutine. I'm doing a performance test by
 having multiple producers compete over the queue (contention). The design of 
-the test is taken from the workshop, but the implementation is entirely 
-written by me.
+the test is the same as it was in the workshop, but the implementation is 
+entirely written by me.
 
 How can I run it?
 -----------------
